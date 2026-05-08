@@ -16,6 +16,7 @@ class App:
     def __init__(self) -> None:
         pygame.init()
         pygame.display.set_caption(WINDOW_TITLE)
+        self._set_window_icon()
 
         # Canvas lógico — toda a UI sempre desenha aqui, em 960x640.
         # A janela real pode ter qualquer tamanho; fazemos blit escalado.
@@ -43,6 +44,16 @@ class App:
         self.scene = self.table_scene
 
         self._scanlines = self._build_scanlines()
+
+    def _set_window_icon(self) -> None:
+        """Aplica o icon.png como ícone da janela. Falha silenciosa se ausente."""
+        from .assets import ASSETS_DIR
+        icon_path = ASSETS_DIR / "icon.png"
+        if icon_path.exists():
+            try:
+                pygame.display.set_icon(pygame.image.load(str(icon_path)))
+            except pygame.error:
+                pass
 
     def _open_settings(self) -> None:
         self.settings_scene = SettingsScene(self.bindings, on_close=self._close_settings)

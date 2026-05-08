@@ -74,6 +74,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    # icon: aponte para um .ico (Windows) ou .icns (macOS) se quiser.
-    # icon=str(ROOT / "assets" / "icon.ico"),
+    # Ícone do executável. .ico funciona em Windows; macOS aceita .icns.
+    # No Linux o ícone é meramente decorativo dentro do bundle.
+    icon=str(ROOT / "assets" / "icon.ico"),
 )
