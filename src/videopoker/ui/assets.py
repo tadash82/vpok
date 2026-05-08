@@ -1,6 +1,7 @@
 """Cache de fontes e (futuros) sprites."""
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import pygame
@@ -9,7 +10,21 @@ from . import theme
 
 _FONT_CACHE: dict[tuple[str, int, bool], pygame.font.Font] = {}
 
-ASSETS_DIR = Path(__file__).resolve().parents[3] / "assets"
+
+def _resolve_assets_dir() -> Path:
+    """Localiza a pasta de assets em modo dev e quando empacotado.
+
+    PyInstaller extrai os datas para `sys._MEIPASS` em runtime; em modo
+    --onefile esse é um diretório temporário. Em desenvolvimento, sobe
+    a partir de src/videopoker/ui/ até a raiz do projeto.
+    """
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        return Path(meipass) / "assets"
+    return Path(__file__).resolve().parents[3] / "assets"
+
+
+ASSETS_DIR = _resolve_assets_dir()
 FONTS_DIR = ASSETS_DIR / "fonts"
 
 

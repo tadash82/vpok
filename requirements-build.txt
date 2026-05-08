@@ -1,0 +1,7 @@
+# Dependências apenas para empacotar o jogo num executável.
+# Não precisa pra rodar via `python run.py`.
+#
+# Uso:
+#   pip install -r requirements-build.txt
+#   pyinstaller videopoker.spec
+pyinstaller>=6.0

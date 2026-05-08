@@ -166,6 +166,54 @@ python3 -m pytest tests/
 
 51 testes cobrindo cartas, baralho, avaliador (todas as combinações + edge cases como wheel A-2-3-4-5), paytable e máquina de estados.
 
+## Distribuir o jogo (executável standalone)
+
+Para gerar um executável que roda sem instalar Python (ideal pra mandar pros amigos):
+
+```bash
+pip install -r requirements-build.txt
+pyinstaller videopoker.spec
+```
+
+A saída fica em `dist/`:
+
+| Plataforma | Arquivo | Tamanho típico |
+|---|---|---|
+| Linux | `dist/videopoker` | ~ 18 MB |
+| Windows | `dist/videopoker.exe` | ~ 25-35 MB |
+
+O mesmo `videopoker.spec` funciona em ambas as plataformas — basta rodar `pyinstaller videopoker.spec` no SO de destino. As fontes em `assets/fonts/` e o código fonte ficam embutidos no binário.
+
+**Para Windows**: rode o comando acima dentro de uma máquina/VM Windows com Python 3.10+ instalado. PyInstaller não faz cross-compilation a partir do Linux.
+
+> Configurações do jogador (`keybindings.json`) ficam em `~/.config/videopoker/` (Linux/macOS) ou `%APPDATA%\videopoker\` (Windows), independente do executável.
+
+### Build automatizado (GitHub Actions)
+
+O workflow em `.github/workflows/build.yml` gera os binários **Windows e Linux em paralelo** sempre que você fizer push ou criar uma tag:
+
+| Trigger | O que acontece |
+|---|---|
+| `push` em `main`/`master` | Roda testes, gera os dois binários, sobe como artifacts |
+| Pull request | Roda testes e build (sem subir release) |
+| `workflow_dispatch` | Roda manualmente pelo botão **Run workflow** na aba Actions |
+| Tag `v*` (ex.: `v1.0.0`) | Faz tudo acima **+** cria uma Release no GitHub com os binários anexados (`videopoker-windows.exe` e `videopoker-linux`) |
+
+Para baixar uma build manual:
+
+1. GitHub → aba **Actions** → último workflow verde
+2. Seção **Artifacts** no fim da página
+3. Baixe `videopoker-windows` (.exe) ou `videopoker-linux`
+
+Para publicar uma versão:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Em poucos minutos uma Release pública aparece em **github.com/<seu-user>/<repo>/releases** com os dois binários prontos pra compartilhar.
+
 ## Smoke test do motor
 
 ```bash
