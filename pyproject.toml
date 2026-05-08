@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "videopoker"
+version = "0.1.0"
+description = "Video Poker Clássico single-player (Five-Card Draw) com estética retrô"
+requires-python = ">=3.10"
+dependencies = ["pygame>=2.5"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
