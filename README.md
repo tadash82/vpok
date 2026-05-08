@@ -4,7 +4,16 @@ Video Poker single-player (Five-Card Draw) em Python + Pygame, com estética ret
 
 Baseado no documento de visão em `docs/poker.txt`.
 
-## Instalação
+## Download (jogar sem instalar nada)
+
+Versões prontas pra Windows e Linux ficam em **[github.com/tadash82/vpok/releases/latest](https://github.com/tadash82/vpok/releases/latest)**:
+
+- **`videopoker-windows.exe`** — clique duplo e jogue.
+- **`videopoker-linux`** — `chmod +x videopoker-linux && ./videopoker-linux`.
+
+Os binários incluem o Python embutido + todas as fontes — não precisa instalar nada.
+
+## Instalação a partir do código
 
 ```bash
 pip install -r requirements.txt
@@ -152,11 +161,21 @@ src/videopoker/
   domain/        — cartas, baralho, avaliador, paytable (Python puro, sem Pygame)
   game/          — máquina de estados e sessão
   ui/            — janela, cena, widgets (único lugar com Pygame)
+assets/
+  fonts/         — Press Start 2P + VT323 (TTF)
+  icon.ico       — ícone do executável (gerado por scripts/make_icon.py)
+  icon.png       — ícone da janela do pygame
+scripts/
+  make_icon.py   — gerador procedural do ícone
+  cli_demo.py    — smoke test estatístico do motor
+.github/workflows/
+  build.yml      — CI: testes + PyInstaller (Win/Linux) + release em tags v*
 ```
 
 - **Domínio sem Pygame**: o motor é testável isoladamente e independente de UI.
-- **Máquina de estados explícita**: `IDLE → BET_PLACED → DEALT → DRAWN → EVALUATED → IDLE`.
+- **Máquina de estados explícita**: `IDLE → BET_PLACED → DEALT → DRAWN → EVALUATED → (DOUBLE_OFFERED ⇄ DOUBLE_REVEALED)* → IDLE`. Em caso de saldo zerado, transita para `GAME_OVER`.
 - **RNG idôneo**: `random.SystemRandom()` por padrão; seed injetável em testes.
+- **Detectores ordenados**: `evaluator.py` aplica uma lista de detectores do mais raro pro mais comum — adicionar uma nova combinação é inserir um item, não refatorar.
 
 ## Testes
 
@@ -164,7 +183,7 @@ src/videopoker/
 python3 -m pytest tests/
 ```
 
-51 testes cobrindo cartas, baralho, avaliador (todas as combinações + edge cases como wheel A-2-3-4-5), paytable e máquina de estados.
+79 testes cobrindo cartas, baralho, avaliador (todas as combinações + edge cases como wheel A-2-3-4-5), paytable, máquina de estados, fluxo de dobra (BIG/MINI/CHEIO + auto-continuação) e calibração da economia.
 
 ## Distribuir o jogo (executável standalone)
 
@@ -179,14 +198,24 @@ A saída fica em `dist/`:
 
 | Plataforma | Arquivo | Tamanho típico |
 |---|---|---|
-| Linux | `dist/videopoker` | ~ 18 MB |
-| Windows | `dist/videopoker.exe` | ~ 25-35 MB |
+| Linux | `dist/videopoker` | ~ 18 MB (build local) / ~ 32 MB (CI) |
+| Windows | `dist/videopoker.exe` | ~ 17-25 MB |
 
-O mesmo `videopoker.spec` funciona em ambas as plataformas — basta rodar `pyinstaller videopoker.spec` no SO de destino. As fontes em `assets/fonts/` e o código fonte ficam embutidos no binário.
+O mesmo `videopoker.spec` funciona em ambas as plataformas — basta rodar `pyinstaller videopoker.spec` no SO de destino. As fontes em `assets/fonts/`, o ícone em `assets/icon.ico` e o código fonte ficam embutidos no binário.
 
-**Para Windows**: rode o comando acima dentro de uma máquina/VM Windows com Python 3.10+ instalado. PyInstaller não faz cross-compilation a partir do Linux.
+**Para Windows**: rode o comando acima dentro de uma máquina/VM Windows com Python 3.10+ instalado. PyInstaller não faz cross-compilation a partir do Linux — use o GitHub Actions (próxima seção) se você só tem Linux.
 
 > Configurações do jogador (`keybindings.json`) ficam em `~/.config/videopoker/` (Linux/macOS) ou `%APPDATA%\videopoker\` (Windows), independente do executável.
+
+### Ícone do jogo
+
+O ícone do executável e da janela é gerado proceduralmente por `scripts/make_icon.py` (Pillow). Para ajustar a arte (paleta, formas), edite o script e rode novamente:
+
+```bash
+python3 scripts/make_icon.py
+```
+
+Saída: `assets/icon.png` (256×256, ícone da janela do pygame) e `assets/icon.ico` (multi-resolução 16/32/48/64/128/256, usado pelo PyInstaller no Windows e mostrado na taskbar/Explorer).
 
 ### Build automatizado (GitHub Actions)
 
@@ -199,20 +228,20 @@ O workflow em `.github/workflows/build.yml` gera os binários **Windows e Linux 
 | `workflow_dispatch` | Roda manualmente pelo botão **Run workflow** na aba Actions |
 | Tag `v*` (ex.: `v1.0.0`) | Faz tudo acima **+** cria uma Release no GitHub com os binários anexados (`videopoker-windows.exe` e `videopoker-linux`) |
 
-Para baixar uma build manual:
+Para baixar uma build manual (sem fazer release):
 
 1. GitHub → aba **Actions** → último workflow verde
 2. Seção **Artifacts** no fim da página
 3. Baixe `videopoker-windows` (.exe) ou `videopoker-linux`
 
-Para publicar uma versão:
+Para publicar uma nova versão pública:
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v0.2.0
+git push vpok v0.2.0           # ou: git push origin v0.2.0 — use o nome do seu remote
 ```
 
-Em poucos minutos uma Release pública aparece em **github.com/<seu-user>/<repo>/releases** com os dois binários prontos pra compartilhar.
+Em ~5 minutos uma Release aparece em **[github.com/tadash82/vpok/releases](https://github.com/tadash82/vpok/releases)** com `videopoker-windows.exe` e `videopoker-linux` anexados, prontos pra compartilhar via link.
 
 ## Smoke test do motor
 
